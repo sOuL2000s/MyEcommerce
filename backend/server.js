@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import colors from 'colors';
 import cookieParser from 'cookie-parser';
+import cors from 'cors'; // Import cors
+
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -14,6 +16,12 @@ dotenv.config();
 const port = process.env.PORT || 5000;
 connectDB();
 const app = express();
+
+// Configure CORS specifically for your frontend
+app.use(cors({
+  origin: 'http://localhost:5173', // Your frontend's URL
+  credentials: true, // Allow cookies to be sent
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
