@@ -1,0 +1,1 @@
+export default function Message({ variant = "info", children }) { const color = variant === "danger" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"; return <div className={`${color} p-4 rounded my-2`}>{children}</div>; }
