@@ -18,8 +18,12 @@ connectDB();
 const app = express();
 
 // Configure CORS specifically for your frontend
+const frontendUrl = process.env.NODE_ENV === 'production'
+  ? process.env.FRONTEND_URL // This environment variable will be set on Render
+  : 'http://localhost:5173'; // For local development
+
 app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend's URL
+  origin: frontendUrl,
   credentials: true, // Allow cookies to be sent
 }));
 
