@@ -25,13 +25,14 @@ const Header = () => {
         </div>
 
         <div className="flex gap-6 items-center">
+          <Link to="/wishlist" className="hover:text-gray-300">Wishlist</Link>
           <Link to="/cart" className="hover:text-gray-300">
             Cart ({cartItems.reduce((acc, item) => acc + item.qty, 0)})
           </Link>
 
           {user ? (
             <div className="flex gap-4 items-center relative">
-              <span className="font-medium">{user.name}</span>
+              <Link to="/profile" className="font-medium hover:text-gray-300">{user.name}</Link>
               
               {user.isAdmin && (
                 <div className="relative">

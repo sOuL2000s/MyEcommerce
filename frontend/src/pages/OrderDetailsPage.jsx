@@ -37,16 +37,61 @@ export default function OrderDetailsPage() {
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const payHandler = async () => {
+    const res = await loadRazorpayScript();
+
+    if (!res) {
+      toast.error("Razorpay SDK failed to load. Are you online?");
+      return;
+    }
+
     try {
-      await api.put(`/api/orders/${id}/pay`, {
-        id: 'PAYMENT_ID_SIMULATED',
-        status: 'COMPLETED',
-        update_time: new Date().toISOString(),
-        email_address: order.user.email
-      });
-      toast.success('Payment successful');
-      fetchOrder();
+      // 1. Create order on backend
+      const { data: razorpayOrder } = await api.post(`/api/orders/${id}/razorpay`);
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_YOUR_KEY", // Should be in .env
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: "MERNShop",
+        description: `Order ${order._id}`,
+        image: "/logo.png",
+        order_id: razorpayOrder.id,
+        handler: async function (response) {
+          try {
+            // 2. Verify payment on backend
+            await api.post(`/api/orders/${id}/verify`, {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success("Payment successful");
+            fetchOrder();
+          } catch (err) {
+            toast.error(err.response?.data?.message || "Verification failed");
+          }
+        },
+        prefill: {
+          name: order.user.name,
+          email: order.user.email,
+        },
+        theme: {
+          color: "#2563eb",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
     } catch (err) {
       toast.error(err.response?.data?.message || err.message);
     }
@@ -132,7 +177,7 @@ export default function OrderDetailsPage() {
                   onClick={payHandler}
                   className='w-full bg-blue-600 text-white py-3 rounded font-bold hover:bg-blue-700 transition mb-2'
                 >
-                  Pay Now (Simulated)
+                  Pay Now
                 </button>
               </div>
             )}

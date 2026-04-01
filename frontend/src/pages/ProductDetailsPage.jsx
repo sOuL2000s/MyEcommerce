@@ -7,6 +7,34 @@ import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import Rating from '../components/Rating';
 import Message from '../components/Message';
+import ProductCard from '../components/ProductCard';
+
+const RelatedProducts = ({ category, excludeId }) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get(`/api/products?category=${category}&limit=5`)
+      .then(({ data }) => {
+        setProducts(data.products.filter(p => p._id !== excludeId).slice(0, 4));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [category, excludeId]);
+
+  if (loading || products.length === 0) return null;
+
+  return (
+    <div className="mt-16">
+      <h2 className="text-2xl font-bold mb-8">Related Products</h2>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {products.map(p => (
+          <ProductCard key={p._id} product={p} />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const ProductDetailsPage = () => {
   const { id } = useParams();
@@ -19,11 +47,14 @@ const ProductDetailsPage = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [mainImage, setMainImage] = useState('');
+  const [selectedVariations, setSelectedVariations] = useState({});
 
   const fetchProduct = async () => {
     try {
       const { data } = await api.get(`/api/products/${id}`);
       setProduct(data);
+      setMainImage(data.image);
       setLoading(false);
     } catch (err) {
       setLoading(false);
@@ -33,6 +64,10 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     fetchProduct();
   }, [id]);
+
+  const handleVariationChange = (name, value) => {
+    setSelectedVariations(prev => ({ ...prev, [name]: value }));
+  };
 
   const addToCartHandler = () => {
     addToCart(product, qty);
@@ -60,7 +95,43 @@ const ProductDetailsPage = () => {
       <Link to='/' className='bg-gray-200 px-4 py-2 rounded inline-block hover:bg-gray-300'>Go Back</Link>
       
       <div className="grid md:grid-cols-2 gap-12">
-        <img src={product.image} className="w-full rounded shadow-lg object-cover h-[500px]" alt={product.name} />
+        <div className="space-y-4">
+          <div className="relative group overflow-hidden rounded-xl shadow-2xl bg-white border border-gray-100">
+            <img 
+              src={mainImage} 
+              className="w-full h-[500px] object-contain transition-transform duration-500 group-hover:scale-110 cursor-zoom-in" 
+              alt={product.name} 
+            />
+          </div>
+          {product.images && product.images.length > 0 && (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+              <button 
+                onClick={() => setMainImage(product.image)}
+                className={`flex-shrink-0 w-20 h-20 rounded-md border-2 transition ${mainImage === product.image ? 'border-blue-500' : 'border-transparent'}`}
+              >
+                <img src={product.image} className="w-full h-full object-cover rounded" alt="main" />
+              </button>
+              {product.images.map((img, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setMainImage(img)}
+                  className={`flex-shrink-0 w-20 h-20 rounded-md border-2 transition ${mainImage === img ? 'border-blue-500' : 'border-transparent'}`}
+                >
+                  <img src={img} className="w-full h-full object-cover rounded" alt={`thumb-${i}`} />
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-4 pt-4">
+             <button className="flex-1 bg-gray-200 text-gray-700 py-3 rounded font-bold hover:bg-gray-300 transition flex items-center justify-center gap-2">
+                <span>Share</span>
+             </button>
+             <button className="flex-1 bg-gray-200 text-gray-700 py-3 rounded font-bold hover:bg-gray-300 transition flex items-center justify-center gap-2">
+                <span>Wishlist</span>
+             </button>
+          </div>
+        </div>
+
         <div className='flex flex-col'>
           <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
           <div className='border-y py-4 my-4'>
@@ -79,31 +150,68 @@ const ProductDetailsPage = () => {
               </span>
             </div>
             
-            {product.countInStock > 0 && (
-              <div className='flex justify-between items-center mb-6'>
-                <span className='text-gray-700'>Qty:</span>
-                <select 
-                  className='p-2 border rounded bg-white' 
-                  value={qty} 
-                  onChange={(e) => setQty(Number(e.target.value))}
-                >
-                  {[...Array(product.countInStock).keys()].map(x => (
-                    <option key={x+1} value={x+1}>{x+1}</option>
-                  ))}
-                </select>
+            {product.variations && product.variations.length > 0 && (
+              <div className="space-y-4 mb-6">
+                {product.variations.map((v) => (
+                  <div key={v.name} className="flex flex-col gap-2">
+                    <span className="text-gray-700 font-medium">{v.name}:</span>
+                    <div className="flex gap-2 flex-wrap">
+                      {v.options.map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => handleVariationChange(v.name, opt)}
+                          className={`px-4 py-1 rounded-full border text-sm transition ${selectedVariations[v.name] === opt ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-600 border-gray-300 hover:border-blue-500'}`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
-            <button 
-              onClick={addToCartHandler} 
-              disabled={product.countInStock === 0}
-              className={`w-full py-3 rounded text-white font-bold transition ${product.countInStock > 0 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
-            >
-              Add to Cart
-            </button>
+            <div className="flex gap-4 items-center mb-6">
+              {product.countInStock > 0 && (
+                <div className='flex items-center gap-3'>
+                  <span className='text-gray-700 font-medium'>Quantity:</span>
+                  <select 
+                    className='p-2 border rounded-lg bg-white min-w-[80px] shadow-sm' 
+                    value={qty} 
+                    onChange={(e) => setQty(Number(e.target.value))}
+                  >
+                    {[...Array(product.countInStock).keys()].map(x => (
+                      <option key={x+1} value={x+1}>{x+1}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={addToCartHandler} 
+                disabled={product.countInStock === 0}
+                className={`w-full py-3 rounded text-white font-bold transition ${product.countInStock > 0 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+              >
+                Add to Cart
+              </button>
+              <button 
+                onClick={() => {
+                  addToCart(product, qty);
+                  navigate('/login?redirect=/shipping');
+                }}
+                disabled={product.countInStock === 0}
+                className={`w-full py-3 rounded font-bold transition border-2 ${product.countInStock > 0 ? 'border-blue-600 text-blue-600 hover:bg-blue-50' : 'border-gray-300 text-gray-400 cursor-not-allowed'}`}
+              >
+                Buy It Now
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      <RelatedProducts category={product.category} excludeId={product._id} />
 
       <div className='grid md:grid-cols-2 gap-12'>
         <div className='space-y-6'>

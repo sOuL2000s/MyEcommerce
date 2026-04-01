@@ -8,6 +8,8 @@ const initialState = {
 };
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
+  const [discount, setDiscount] = React.useState(0);
+
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(state.cartItems));
     localStorage.setItem('shippingAddress', JSON.stringify(state.shippingAddress));
@@ -19,9 +21,21 @@ export const CartProvider = ({ children }) => {
   const savePaymentMethod = (method) => dispatch({ type: 'CART_SAVE_PAYMENT_METHOD', payload: method });
   const clearCartItems = () => dispatch({ type: 'CART_CLEAR_ITEMS' });
   const itemsPrice = state.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const shippingPrice = itemsPrice > 100 ? 0 : 10;
+  const shippingPrice = itemsPrice > 0 && itemsPrice > 100 ? 0 : (itemsPrice > 0 ? 10 : 0);
   const taxPrice = 0.15 * itemsPrice;
-  const totalPrice = itemsPrice + shippingPrice + taxPrice;
-  return <CartContext.Provider value={{ ...state, itemsPrice, shippingPrice, taxPrice, totalPrice, addToCart, removeFromCart, saveShippingAddress, savePaymentMethod, clearCartItems }}>{children}</CartContext.Provider>;
+  const subtotal = itemsPrice + shippingPrice + taxPrice;
+  const discountAmount = (subtotal * discount) / 100;
+  const totalPrice = subtotal - discountAmount;
+
+  const applyDiscount = (code) => {
+    if (code.toUpperCase() === 'SAVE10') {
+      setDiscount(10);
+      return true;
+    }
+    setDiscount(0);
+    return false;
+  };
+
+  return <CartContext.Provider value={{ ...state, itemsPrice, shippingPrice, taxPrice, totalPrice, discountAmount, addToCart, removeFromCart, saveShippingAddress, savePaymentMethod, clearCartItems, applyDiscount }}>{children}</CartContext.Provider>;
 };
 export const useCart = () => useContext(CartContext);

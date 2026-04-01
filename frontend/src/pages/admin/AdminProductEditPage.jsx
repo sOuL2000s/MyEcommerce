@@ -11,10 +11,12 @@ export default function AdminProductEditPage() {
   const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
   const [image, setImage] = useState('');
+  const [images, setImages] = useState(''); // Textarea comma separated
   const [brand, setBrand] = useState('');
   const [category, setCategory] = useState('');
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState('');
+  const [isFeatured, setIsFeatured] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -25,10 +27,12 @@ export default function AdminProductEditPage() {
         setName(data.name);
         setPrice(data.price);
         setImage(data.image);
+        setImages(data.images?.join(', ') || '');
         setBrand(data.brand);
         setCategory(data.category);
         setCountInStock(data.countInStock);
         setDescription(data.description);
+        setIsFeatured(data.isFeatured || false);
         setLoading(false);
       } catch (err) {
         setLoading(false);
@@ -58,7 +62,10 @@ export default function AdminProductEditPage() {
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/api/products/${id}`, { name, price, image, brand, category, countInStock, description });
+      const imagesArray = images.split(',').map(img => img.trim()).filter(img => img !== '');
+      await api.put(`/api/products/${id}`, { 
+        name, price, image, images: imagesArray, brand, category, countInStock, description, isFeatured 
+      });
       toast.success('Product updated');
       navigate('/admin/productlist');
     } catch (err) {
@@ -82,10 +89,18 @@ export default function AdminProductEditPage() {
               <input type="number" className="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500" value={price} onChange={e => setPrice(e.target.value)} />
             </div>
             <div>
-              <label className="block text-gray-700 mb-1">Image</label>
+              <label className="block text-gray-700 mb-1">Main Image URL</label>
               <input className="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500 mb-2" value={image} onChange={e => setImage(e.target.value)} />
-              <input type="file" onChange={uploadFileHandler} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+              <input type="file" onChange={uploadFileHandler} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4" />
               {uploading && <Loader />}
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-1">Gallery Images (comma separated URLs)</label>
+              <textarea className="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500" value={images} onChange={e => setImages(e.target.value)} rows="3" />
+            </div>
+            <div className="flex items-center gap-2 py-2">
+               <input type="checkbox" id="isFeatured" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} />
+               <label htmlFor="isFeatured" className="text-gray-700">Featured Product</label>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
