@@ -19,6 +19,11 @@ const port = process.env.PORT || 5000;
 connectDB();
 const app = express();
 
+// Trust proxy for secure cookies in production (Render/Netlify)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 const frontendUrl = process.env.NODE_ENV === 'production'
   ? process.env.FRONTEND_URL
   : 'http://localhost:5173';
