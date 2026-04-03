@@ -21,11 +21,12 @@ export const CartProvider = ({ children }) => {
   const savePaymentMethod = (method) => dispatch({ type: 'CART_SAVE_PAYMENT_METHOD', payload: method });
   const clearCartItems = () => dispatch({ type: 'CART_CLEAR_ITEMS' });
   const itemsPrice = state.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-  const shippingPrice = itemsPrice > 0 && itemsPrice > 100 ? 0 : (itemsPrice > 0 ? 10 : 0);
-  const taxPrice = 0.15 * itemsPrice;
-  const subtotal = itemsPrice + shippingPrice + taxPrice;
-  const discountAmount = (subtotal * discount) / 100;
-  const totalPrice = subtotal - discountAmount;
+  const subtotal = itemsPrice;
+  const taxPrice = 0.15 * subtotal;
+  const shippingPrice = subtotal > 0 && subtotal > 100 ? 0 : (subtotal > 0 ? 10 : 0);
+  const totalBeforeDiscount = subtotal + shippingPrice + taxPrice;
+  const discountAmount = (totalBeforeDiscount * discount) / 100;
+  const totalPrice = totalBeforeDiscount - discountAmount;
 
   const applyDiscount = (code) => {
     if (code.toUpperCase() === 'SAVE10') {

@@ -61,8 +61,8 @@ export default function AdminProductListPage() {
       </div>
       {loading ? <Loader /> : (
         <>
-          <div className="overflow-x-auto bg-white rounded shadow">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-100">
+            <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="bg-gray-100 border-b">
                   <th className="p-4 font-semibold">ID</th>

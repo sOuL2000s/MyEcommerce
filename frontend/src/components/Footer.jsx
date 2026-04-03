@@ -56,12 +56,15 @@ export default function Footer() {
           </div>
         </div>
       </div>
-      <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 text-xs uppercase tracking-widest">
-        <div>MERNShop &copy; {new Date().getFullYear()} All Rights Reserved.</div>
-        <div className="flex gap-6">
-           <Link to="/privacy" className="hover:text-white transition">Privacy Policy</Link>
-           <Link to="/terms" className="hover:text-white transition">Terms of Service</Link>
-           <Link to="/shipping-policy" className="hover:text-white transition">Shipping Policy</Link>
+      <div className="border-t border-slate-700 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">
+        <div className="flex items-center gap-2">
+           <div className="w-8 h-[2px] bg-indigo-600"></div>
+           MERNShop &copy; {new Date().getFullYear()} Built with ❤️ for excellence
+        </div>
+        <div className="flex gap-8">
+           <Link to="/privacy" className="hover:text-indigo-400 transition-colors">Privacy</Link>
+           <Link to="/terms" className="hover:text-indigo-400 transition-colors">Terms</Link>
+           <Link to="/shipping-policy" className="hover:text-indigo-400 transition-colors">Shipping</Link>
         </div>
       </div>
     </footer>

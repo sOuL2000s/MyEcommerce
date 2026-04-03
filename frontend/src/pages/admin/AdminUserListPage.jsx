@@ -21,8 +21,8 @@ export default function AdminUserListPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Users</h1>
       {loading ? <Loader /> : (
-        <div className="overflow-x-auto bg-white rounded shadow">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-slate-100">
+          <table className="w-full text-left border-collapse min-w-[800px]">
             <thead><tr className="bg-gray-100 border-b"><th className="p-4 font-semibold">ID</th><th className="p-4 font-semibold">NAME</th><th className="p-4 font-semibold">EMAIL</th><th className="p-4 font-semibold">ADMIN</th><th className="p-4 font-semibold">ACTIONS</th></tr></thead>
             <tbody>{users.map((user) => (<tr key={user._id} className="border-b hover:bg-gray-50"><td className="p-4">{user._id}</td><td className="p-4">{user.name}</td><td className="p-4"><a href={`mailto:${user.email}`} className="text-blue-600 hover:underline">{user.email}</a></td><td className="p-4">{user.isAdmin ? '✔' : '✖'}</td><td className="p-4 flex gap-4"><Link to={`/admin/user/${user._id}/edit`} className="bg-blue-100 text-blue-600 px-3 py-1 rounded">Edit</Link><button onClick={() => deleteHandler(user._id)} className="bg-red-100 text-red-600 px-3 py-1 rounded">Delete</button></td></tr>))}</tbody>
           </table>

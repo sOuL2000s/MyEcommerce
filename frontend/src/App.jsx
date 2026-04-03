@@ -5,11 +5,13 @@ import Breadcrumbs from './components/Breadcrumbs.jsx';
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen selection:bg-indigo-100 selection:text-indigo-900">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <Breadcrumbs />
-        <Outlet />
+      <main className="flex-grow pt-8 pb-20">
+        <div className="container mx-auto px-4">
+          <Breadcrumbs />
+          <Outlet />
+        </div>
       </main>
       <Footer />
     </div>
